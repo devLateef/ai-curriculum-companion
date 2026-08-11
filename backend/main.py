@@ -10,4 +10,4 @@ def hello():
 @app.route("/hello")
 def get_name():
     name = request.args.get("name", "Flask")
-    return f"Welcome {escape(name)}"
+    return f"Welcome! {escape(name)}"
