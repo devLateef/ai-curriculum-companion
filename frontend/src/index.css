@@ -1,12 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #3b82f6;
-  --color-secondary: #8b5cf6;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 antialiased;
-  }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #f5f6f8;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes scan-line {
+  0%   { top: 0; }
+  100% { top: 100%; }
+}
+
+.fade-in { animation: fadeIn 0.4s ease both; }
+.spin     { animation: spin 1.2s linear infinite; }
+.pulse    { animation: pulse 1.5s ease infinite; }
+
+.react-pdf__Page { display: flex; justify-content: center; }
+.react-pdf__Page__canvas {
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  max-width: 100% !important;
+  height: auto !important;
+}
+/* Allow text layer for highlights, but keep it invisible by default. react-pdf handles transparency natively. */
+.react-pdf__Page__textContent { 
+  display: block !important; 
+}
+.react-pdf__Page__annotations { display: none; }
+
+/* Highlighted sentences in analysis */
+.finding-highlight {
+  background: #fef9c3;
+  border-bottom: 2px solid #d97706;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.finding-highlight:hover { background: #fef08a; }
+.finding-highlight.critical {
+  background: #fee2e2;
+  border-bottom-color: #dc2626;
+}
+.finding-highlight.aligned {
+  background: #dcfce7;
+  border-bottom-color: #16a34a;
+}
+
+/* In-PDF Grammarly-style highlights via textLayer */
+mark.grammar-critical {
+  background-color: transparent !important;
+  border-bottom: 2px solid #ff4a4a !important;
+  color: transparent !important;
+  display: inline-block;
+  padding-bottom: 1px;
+}
+mark.grammar-outdated {
+  background-color: transparent !important;
+  border-bottom: 2px solid #5582ff !important;
+  color: transparent !important;
+  display: inline-block;
+  padding-bottom: 1px;
+}
+mark.grammar-aligned {
+  background-color: transparent !important;
+  border-bottom: 2px solid #16a34a !important;
+  color: transparent !important;
+  display: inline-block;
+  padding-bottom: 1px;
 }
