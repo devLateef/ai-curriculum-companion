@@ -1,9 +1,7 @@
 from flask import Flask, request, render_template, abort
 from markupsafe import escape
-import os
-from pathlib import Path
 import logging
-import sys
+from backend.services.auth import home, hello
 
 logging.basicConfig(level=logging.DEBUG, force=True)
 
@@ -13,20 +11,10 @@ app.logger.handlers.clear()
 app.logger.addHandler(logging.StreamHandler())
 
 @app.route('/')
-def hello():
-    return "<p>Hello, World!</p>"
+def landing():
+    return home()
 
 @app.route("/hello/<string:name>")
 def get_name(name):
-    #name = request.args.get("name", "Flask")
-    return f"Welcome to our platform {name}"
+    return hello(name)
 
-@app.route("/upload", methods = ['GET'])
-def display_upload_form():
-    print("hello tuetue")
-    return render_template('index.html')
-
-@app.route("/store", methods=["POST"])
-def store_file():
-    print(request.form.get("firstname"))
-    return "Okay"
