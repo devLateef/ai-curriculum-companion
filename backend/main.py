@@ -1,5 +1,4 @@
-from flask import Flask, request, render_template, abort
-from markupsafe import escape
+from flask import Flask
 import logging
 from backend.services.auth import home, hello
 
