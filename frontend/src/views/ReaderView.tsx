@@ -5,8 +5,9 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import {
   ChevronLeft, ChevronRight, Upload,
   GraduationCap, Scan, AlertTriangle, CheckCircle,
-  RefreshCw, ChevronDown, BookOpen, Minus, Plus,
+  RefreshCw, ChevronDown, BookOpen, Minus, Plus
 } from 'lucide-react';
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -84,25 +85,78 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
 
   const goTo = (p: number) => setCurrentPage(Math.max(1, Math.min(p, numPages)));
 
-  const startScan = useCallback(() => {
+  const startScan = useCallback(async () => {
     setScanning(true);
     setScanProgress(0);
     setFindings([]);
     setActiveFinding(null);
-    const total = scanMode === 'all' ? numPages : selectedPages.split(',').length || 1;
-    let done = 0;
-    const iv = setInterval(() => {
-      done += 1;
-      setScanProgress(Math.min(Math.round((done / total) * 100), 100));
-      if (done >= total) {
-        clearInterval(iv);
-        setTimeout(() => {
-          setScanning(false);
-          setFindings(MOCK_FINDINGS);
-        }, 400);
+
+    try {
+      let pagesToScan: number[] = [];
+      if (scanMode === 'current') {
+        pagesToScan = [currentPage];
+      } else if (scanMode === 'all') {
+        pagesToScan = Array.from({ length: numPages }, (_, i) => i + 1);
+      } else {
+        const parts = selectedPages.split(',');
+        for (const part of parts) {
+          const p = part.trim();
+          if (p.includes('-')) {
+            const [start, end] = p.split('-').map(Number);
+            if (!isNaN(start) && !isNaN(end)) {
+              for (let i = start; i <= end; i++) pagesToScan.push(i);
+            }
+          } else {
+            const n = Number(p);
+            if (!isNaN(n)) pagesToScan.push(n);
+          }
+        }
       }
-    }, 350);
-  }, [scanMode, numPages, selectedPages]);
+
+      if (pagesToScan.length === 0) {
+        alert("No valid pages selected to scan.");
+        setScanning(false);
+        return;
+      }
+
+      setScanProgress(10);
+      const doc = await pdfjs.getDocument(url).promise;
+      let extractedText = "";
+      for (let i = 0; i < pagesToScan.length; i++) {
+        const pageNum = pagesToScan[i];
+        if (pageNum < 1 || pageNum > numPages) continue;
+        const page = await doc.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        extractedText += `--- Page ${pageNum} ---\n${pageText}\n\n`;
+        setScanProgress(10 + Math.round(((i + 1) / pagesToScan.length) * 30));
+      }
+
+      if (!extractedText.trim()) {
+        alert("No text could be extracted from these pages.");
+        setScanning(false);
+        return;
+      }
+
+      setScanProgress(50);
+
+      // Simulate backend processing delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setScanProgress(90);
+
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      // Return mock findings
+      setFindings(MOCK_FINDINGS);
+      setScanProgress(100);
+
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during scanning. See console.");
+    } finally {
+      setTimeout(() => setScanning(false), 400);
+    }
+  }, [scanMode, currentPage, numPages, selectedPages, url]);
 
   // Parse page count label
   const scanLabel = () => {
