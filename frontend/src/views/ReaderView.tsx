@@ -422,7 +422,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
               </div>
             )}
           </div>
-
           {/* Findings List */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px' }}>
             {findings.length === 0 && !scanning ? (

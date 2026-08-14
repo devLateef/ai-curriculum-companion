@@ -99,10 +99,10 @@ class PdfProcessor:
             }
         }
 
-        self._search_crossref(query, findings)
-        self._search_pubmed(query, findings)
-        self._search_wikipedia(query, findings)
-        self._search_arxiv(query, findings)
+        self._search_crossref(query.values(), findings)
+        self._search_pubmed(query.values(), findings)
+        self._search_wikipedia(query.values(), findings)
+        self._search_arxiv(query.values(), findings)
 
         return findings
 
