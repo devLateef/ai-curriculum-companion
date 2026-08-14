@@ -65,8 +65,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
   const [scanProgress, setScanProgress] = useState(0);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [activeFinding, setActiveFinding] = useState<Finding | null>(null);
-  const [selectedPages, setSelectedPages] = useState<string>('');
-  const [scanMode, setScanMode] = useState<'current' | 'range' | 'all'>('current');
 
   // Grammarly-style highlight renderer
   const textRenderer = useCallback((textItem: any) => {
@@ -92,26 +90,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
     setActiveFinding(null);
 
     try {
-      let pagesToScan: number[] = [];
-      if (scanMode === 'current') {
-        pagesToScan = [currentPage];
-      } else if (scanMode === 'all') {
-        pagesToScan = Array.from({ length: numPages }, (_, i) => i + 1);
-      } else {
-        const parts = selectedPages.split(',');
-        for (const part of parts) {
-          const p = part.trim();
-          if (p.includes('-')) {
-            const [start, end] = p.split('-').map(Number);
-            if (!isNaN(start) && !isNaN(end)) {
-              for (let i = start; i <= end; i++) pagesToScan.push(i);
-            }
-          } else {
-            const n = Number(p);
-            if (!isNaN(n)) pagesToScan.push(n);
-          }
-        }
-      }
+      let pagesToScan: number[] = [currentPage];
 
       if (pagesToScan.length === 0) {
         alert("No valid pages selected to scan.");
@@ -156,14 +135,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
     } finally {
       setTimeout(() => setScanning(false), 400);
     }
-  }, [scanMode, currentPage, numPages, selectedPages, url]);
+  }, [currentPage, numPages, url]);
 
   // Parse page count label
-  const scanLabel = () => {
-    if (scanMode === 'current') return `Scan Page ${currentPage}`;
-    if (scanMode === 'all') return `Scan All ${numPages} Pages`;
-    return `Scan Selected Pages`;
-  };
+  const scanLabel = () => `Scan Page ${currentPage}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f5f6f8', overflow: 'hidden' }}>
@@ -337,55 +312,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
               Curriculum Analysis
             </div>
             <p style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
-              Select pages and scan to identify outdated content and see current knowledge.
+              Scan the current page to identify outdated content and see current knowledge.
             </p>
           </div>
 
           {/* Scan Controls */}
           <div style={{ padding: '14px 18px', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
-            {/* Scan mode selector */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>
-              What to scan
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
-              {([
-                ['current', `Current Page (${currentPage})`],
-                ['range', 'Custom Page Range'],
-                ['all', `Full Document (${numPages} pages)`],
-              ] as const).map(([val, label]) => (
-                <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="scanMode"
-                    value={val}
-                    checked={scanMode === val}
-                    onChange={() => setScanMode(val)}
-                    style={{ accentColor: '#0d3d2e', width: 15, height: 15 }}
-                  />
-                  <span style={{ fontSize: 13.5, color: '#374151', fontWeight: scanMode === val ? 600 : 400 }}>
-                    {label}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-            {/* Custom range input */}
-            {scanMode === 'range' && (
-              <input
-                type="text"
-                placeholder="e.g. 1-5, 8, 12-15"
-                value={selectedPages}
-                onChange={(e) => setSelectedPages(e.target.value)}
-                style={{
-                  width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb',
-                  borderRadius: 9, fontSize: 13, outline: 'none', marginBottom: 12,
-                  fontFamily: 'monospace', color: '#374151',
-                }}
-                onFocus={(e) => ((e.target as HTMLInputElement).style.borderColor = '#0d3d2e')}
-                onBlur={(e) => ((e.target as HTMLInputElement).style.borderColor = '#e5e7eb')}
-              />
-            )}
-
             {/* Scan Button */}
             {!scanning ? (
               <button
@@ -429,7 +361,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
               <div style={{ textAlign: 'center', paddingTop: 48, color: '#c4c9d4' }}>
                 <Scan size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }} />
                 <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>
-                  Choose pages above and hit <strong style={{ color: '#0d3d2e' }}>Scan</strong> to get AI analysis.
+                  Hit <strong style={{ color: '#0d3d2e' }}>Scan</strong> to get AI analysis for this page.
                 </p>
               </div>
             ) : (
