@@ -10,15 +10,33 @@ export const UploadView: React.FC<UploadViewProps> = ({ onFileLoaded }) => {
   const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file || file.type !== 'application/pdf') {
       alert('Please upload a valid PDF file.');
       return;
     }
     setLoading(true);
-    const url = URL.createObjectURL(file);
-    // Small delay so user sees the loading state
-    setTimeout(() => onFileLoaded(file, url), 600);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://127.0.0.1:5000/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file to the backend.');
+      }
+
+      const url = URL.createObjectURL(file);
+      onFileLoaded(file, url);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload file to the backend.');
+      setLoading(false);
+    }
   }, [onFileLoaded]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
