@@ -22,9 +22,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.pdf_payload import extract_page  # noqa: E402
-from src import config  # noqa: E402
-from src.merge import build_units  # noqa: E402
-from src.schema import Item  # noqa: E402
+from src.core import config  # noqa: E402
+from src.core.merge import build_units  # noqa: E402
+from src.core.schema import Item  # noqa: E402
 
 CURRICULUM_DIR = config.BACKEND_DIR / "curriculum"
 UNITS_DIR = config.DATA_DIR / "units"

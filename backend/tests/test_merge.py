@@ -1,7 +1,7 @@
 """Merge and prefilter, on synthetic payloads. No model, no corpus, no network."""
 
-from src.merge import Unit, build_units, merge_items, prefilter
-from src.schema import Item
+from src.core.merge import Unit, build_units, merge_items, prefilter
+from src.core.schema import Item
 
 BODY_H = 10.0
 HEAD_H = 18.0

@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src import config  # noqa: E402
+from src.core import config  # noqa: E402
 
 UNITS_DIR = config.DATA_DIR / "units"
 CACHE = UNITS_DIR / "retrieval.jsonl"

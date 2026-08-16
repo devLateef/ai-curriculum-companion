@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.schema import PageRequest  # noqa: E402
+from src.core.schema import PageRequest  # noqa: E402
 
 NS = {"x": "http://www.w3.org/1999/xhtml"}
 

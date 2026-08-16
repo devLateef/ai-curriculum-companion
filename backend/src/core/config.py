@@ -8,7 +8,8 @@ subject, a field id, or a threshold.
 import os
 from pathlib import Path
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent
+# src/core/config.py -> src/core -> src -> backend
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = BACKEND_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 DB_PATH = DATA_DIR / "lancedb"

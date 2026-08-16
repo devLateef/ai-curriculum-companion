@@ -12,7 +12,7 @@ around.
 
 import os
 
-from src.app import app
+from src.api.app import app
 
 __all__ = ["app"]
 

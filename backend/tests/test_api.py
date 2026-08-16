@@ -15,8 +15,8 @@ import json
 
 import pytest
 
-from src import app as app_module
-from src.schema import ItemVerdict
+from src.api import app as app_module
+from src.core.schema import ItemVerdict
 
 
 @pytest.fixture

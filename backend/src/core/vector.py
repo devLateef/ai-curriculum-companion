@@ -3,7 +3,7 @@
 Offline: the only network dependency is Ollama on localhost, for embedding the
 query. LanceDB is embedded -- there is no database server.
 
-    from src.vector import search
+    from src.core.vector import search
     hits = search("la photosynthese chez les plantes", subject="biology")
 """
 

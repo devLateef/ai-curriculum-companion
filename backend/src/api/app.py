@@ -29,10 +29,10 @@ import httpx
 from flask import Flask, Response, jsonify, request
 from pydantic import ValidationError
 
-from . import config
-from .pipeline import analyze
-from .schema import PageRequest
-from .store import connect, table_names
+from ..core import config
+from ..core.pipeline import analyze
+from ..core.schema import PageRequest
+from ..core.store import connect, table_names
 
 log = logging.getLogger(__name__)
 

@@ -6,8 +6,8 @@ not retrieval quality. Retrieval quality is scored by `scripts/eval.py --retriev
 
 import pytest
 
-from src import pipeline
-from src.schema import Item, PageRequest
+from src.core import pipeline
+from src.core.schema import Item, PageRequest
 
 
 @pytest.fixture(autouse=True)
