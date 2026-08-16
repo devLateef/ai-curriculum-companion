@@ -9,5 +9,11 @@ sentencepiece
 onnxruntime
 tokenizers
 
+# PDF upload route (/process)
+pdfplumber
+spacy
+scikit-learn
+requests
+
 # dev
 pytest

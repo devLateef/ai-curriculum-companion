@@ -4,12 +4,17 @@ The HTTP surface for page analysis. JSON in, JSON out. **The server never sees t
 rendering and highlighting are the client's job. The server treats every item as
 opaque except `text` and `id`.
 
-Run it:
+Setup and run:
 
 ```bash
 cd backend
-./venv/bin/python main.py          # http://127.0.0.1:5000
+./venv/bin/pip install -r requirements.txt
+./venv/bin/python -m spacy download en_core_web_sm   # pip cannot fetch this
+./venv/bin/python main.py                            # http://127.0.0.1:5000
 ```
+
+The server runs with `backend/` as the working directory; that is the import
+root for `src.*`, `services.*`, and the scripts.
 
 Check it is alive before anything else:
 
@@ -159,6 +164,29 @@ line with an `error` key instead:
 ```
 
 Check every line for `error` before treating it as a verdict.
+
+---
+
+## `POST /process`
+
+Takes a PDF as multipart form data (field `file`) and runs a separate
+extraction pipeline: pdfplumber for text, spaCy and TF-IDF for keywords,
+claims, facts and definitions. Independent of the JSON routes above — different
+input, different evidence.
+
+```bash
+curl -X POST localhost:5000/process -F file=@chapter.pdf
+```
+
+Returns `pdf_summary`, `curriculum_info`, `recent_sources`, `comparison`, and
+`online_sources_enabled`.
+
+Queries against CrossRef, PubMed, Wikipedia and arXiv are **disabled by
+default**, so `recent_sources` and `comparison` come back empty and no network
+call is made. Set `ENABLE_ONLINE_SOURCES=1` to turn them on; expect it to be
+slow, as each extracted claim costs a sequential round trip to four services.
+The response shape is identical either way, so clients never branch on the
+flag.
 
 ---
 

@@ -5,8 +5,9 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import {
   ChevronLeft, ChevronRight, Upload,
   GraduationCap, Scan, AlertTriangle, CheckCircle,
-  RefreshCw, ChevronDown, BookOpen, Minus, Plus,
+  RefreshCw, ChevronDown, BookOpen, Minus, Plus
 } from 'lucide-react';
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -64,8 +65,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
   const [scanProgress, setScanProgress] = useState(0);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [activeFinding, setActiveFinding] = useState<Finding | null>(null);
-  const [selectedPages, setSelectedPages] = useState<string>('');
-  const [scanMode, setScanMode] = useState<'current' | 'range' | 'all'>('current');
 
   // Grammarly-style highlight renderer
   const textRenderer = useCallback((textItem: any) => {
@@ -84,32 +83,62 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
 
   const goTo = (p: number) => setCurrentPage(Math.max(1, Math.min(p, numPages)));
 
-  const startScan = useCallback(() => {
+  const startScan = useCallback(async () => {
     setScanning(true);
     setScanProgress(0);
     setFindings([]);
     setActiveFinding(null);
-    const total = scanMode === 'all' ? numPages : selectedPages.split(',').length || 1;
-    let done = 0;
-    const iv = setInterval(() => {
-      done += 1;
-      setScanProgress(Math.min(Math.round((done / total) * 100), 100));
-      if (done >= total) {
-        clearInterval(iv);
-        setTimeout(() => {
-          setScanning(false);
-          setFindings(MOCK_FINDINGS);
-        }, 400);
+
+    try {
+      let pagesToScan: number[] = [currentPage];
+
+      if (pagesToScan.length === 0) {
+        alert("No valid pages selected to scan.");
+        setScanning(false);
+        return;
       }
-    }, 350);
-  }, [scanMode, numPages, selectedPages]);
+
+      setScanProgress(10);
+      const doc = await pdfjs.getDocument(url).promise;
+      let extractedText = "";
+      for (let i = 0; i < pagesToScan.length; i++) {
+        const pageNum = pagesToScan[i];
+        if (pageNum < 1 || pageNum > numPages) continue;
+        const page = await doc.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        extractedText += `--- Page ${pageNum} ---\n${pageText}\n\n`;
+        setScanProgress(10 + Math.round(((i + 1) / pagesToScan.length) * 30));
+      }
+
+      if (!extractedText.trim()) {
+        alert("No text could be extracted from these pages.");
+        setScanning(false);
+        return;
+      }
+
+      setScanProgress(50);
+
+      // Simulate backend processing delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setScanProgress(90);
+
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      // Return mock findings
+      setFindings(MOCK_FINDINGS);
+      setScanProgress(100);
+
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during scanning. See console.");
+    } finally {
+      setTimeout(() => setScanning(false), 400);
+    }
+  }, [currentPage, numPages, url]);
 
   // Parse page count label
-  const scanLabel = () => {
-    if (scanMode === 'current') return `Scan Page ${currentPage}`;
-    if (scanMode === 'all') return `Scan All ${numPages} Pages`;
-    return `Scan Selected Pages`;
-  };
+  const scanLabel = () => `Scan Page ${currentPage}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f5f6f8', overflow: 'hidden' }}>
@@ -283,55 +312,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
               Curriculum Analysis
             </div>
             <p style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>
-              Select pages and scan to identify outdated content and see current knowledge.
+              Scan the current page to identify outdated content and see current knowledge.
             </p>
           </div>
 
           {/* Scan Controls */}
           <div style={{ padding: '14px 18px', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
-            {/* Scan mode selector */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>
-              What to scan
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
-              {([
-                ['current', `Current Page (${currentPage})`],
-                ['range', 'Custom Page Range'],
-                ['all', `Full Document (${numPages} pages)`],
-              ] as const).map(([val, label]) => (
-                <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="scanMode"
-                    value={val}
-                    checked={scanMode === val}
-                    onChange={() => setScanMode(val)}
-                    style={{ accentColor: '#0d3d2e', width: 15, height: 15 }}
-                  />
-                  <span style={{ fontSize: 13.5, color: '#374151', fontWeight: scanMode === val ? 600 : 400 }}>
-                    {label}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-            {/* Custom range input */}
-            {scanMode === 'range' && (
-              <input
-                type="text"
-                placeholder="e.g. 1-5, 8, 12-15"
-                value={selectedPages}
-                onChange={(e) => setSelectedPages(e.target.value)}
-                style={{
-                  width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb',
-                  borderRadius: 9, fontSize: 13, outline: 'none', marginBottom: 12,
-                  fontFamily: 'monospace', color: '#374151',
-                }}
-                onFocus={(e) => ((e.target as HTMLInputElement).style.borderColor = '#0d3d2e')}
-                onBlur={(e) => ((e.target as HTMLInputElement).style.borderColor = '#e5e7eb')}
-              />
-            )}
-
             {/* Scan Button */}
             {!scanning ? (
               <button
@@ -368,14 +354,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ file, url, onReset }) =>
               </div>
             )}
           </div>
-
           {/* Findings List */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px' }}>
             {findings.length === 0 && !scanning ? (
               <div style={{ textAlign: 'center', paddingTop: 48, color: '#c4c9d4' }}>
                 <Scan size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }} />
                 <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>
-                  Choose pages above and hit <strong style={{ color: '#0d3d2e' }}>Scan</strong> to get AI analysis.
+                  Hit <strong style={{ color: '#0d3d2e' }}>Scan</strong> to get AI analysis for this page.
                 </p>
               </div>
             ) : (

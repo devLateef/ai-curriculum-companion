@@ -39,6 +39,24 @@ log = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
 
+# PDF upload route, kept in its own module and registered here so both surfaces
+# share one app, and therefore one CORS and error-handling setup.
+#
+# Registered defensively. It pulls in pdfplumber, spaCy and scikit-learn, which
+# the JSON analysis routes do not need, and it loads a spaCy model at import
+# time -- a missing model raises OSError rather than ImportError, so catching
+# only ImportError here would still take the whole API down. Neither an absent
+# package nor an absent model should do that: /process returns 404 instead, and
+# /api/health reports why.
+try:
+    from .process import bp as process_bp
+
+    app.register_blueprint(process_bp)
+    PROCESS_ROUTE_ERROR: str | None = None
+except Exception as exc:  # noqa: BLE001 - optional route must never block startup
+    PROCESS_ROUTE_ERROR = f"{type(exc).__name__}: {exc}"
+    logging.getLogger(__name__).warning("/process unavailable: %s", exc)
+
 # The client is served from a separate origin during development (Vite on :5173),
 # so browser calls are cross-origin. Implemented by hand rather than pulling in
 # flask-cors: two headers do not justify a dependency in an offline-first tool.
@@ -204,6 +222,10 @@ def health():
     except Exception as exc:  # noqa: BLE001
         report["models"] = {"error": f"ollama unreachable at {config.OLLAMA_HOST}: {exc}"}
         report["ok"] = False
+
+    report["routes"] = {
+        "process": "ok" if PROCESS_ROUTE_ERROR is None else f"unavailable: {PROCESS_ROUTE_ERROR}"
+    }
 
     return jsonify(report), (200 if report["ok"] else 503)
 

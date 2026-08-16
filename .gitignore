@@ -13,3 +13,6 @@ venv/
 # Node (frontend has its own, this is the safety net)
 node_modules/
 dist/
+
+# Local Claude Code tool permissions
+.claude/

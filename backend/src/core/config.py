@@ -145,6 +145,12 @@ CANDIDATE_POOL = 20
 # the whole table.
 DEFAULT_SUBJECT = os.getenv("DEFAULT_SUBJECT", "reproductive_health")
 
+# --- Live literature APIs ---------------------------------------------------
+# Used by the /process route only. Off by default: offline operation is a
+# product property, and enabling this costs a sequential round trip to four
+# external services for every extracted claim.
+ENABLE_ONLINE_SOURCES = os.getenv("ENABLE_ONLINE_SOURCES") == "1"
+
 # --- OpenAlex ---------------------------------------------------------------
 OPENALEX_BASE = "https://api.openalex.org/works"
 
