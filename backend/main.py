@@ -1,32 +1,25 @@
-from flask import Flask, request, render_template, abort
-from markupsafe import escape
+"""Entry point for the analysis API.
+
+    ./venv/bin/python main.py                 # localhost:5000
+    HOST=0.0.0.0 PORT=8000 python main.py     # bind elsewhere
+    FLASK_DEBUG=1 python main.py              # autoreload while editing
+
+Debug defaults to OFF. Werkzeug's reloader runs the module in two processes,
+which means two model clients and two database handles on a machine with a tight
+memory budget -- an accidental doubling of the footprint the design is built
+around.
+"""
+
 import os
-from pathlib import Path
-import logging
-import sys
 
-logging.basicConfig(level=logging.DEBUG, force=True)
+from src.app import app
 
-app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
-app.logger.handlers.clear()
-app.logger.addHandler(logging.StreamHandler())
+__all__ = ["app"]
 
-@app.route('/')
-def hello():
-    return "<p>Hello, World!</p>"
-
-@app.route("/hello/<string:name>")
-def get_name(name):
-    #name = request.args.get("name", "Flask")
-    return f"Welcome to our platform {name}"
-
-@app.route("/upload", methods = ['GET'])
-def display_upload_form():
-    print("hello tuetue")
-    return render_template('index.html')
-
-@app.route("/store", methods=["POST"])
-def store_file():
-    print(request.form.get("firstname"))
-    return "Okay"
+if __name__ == "__main__":
+    app.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG") == "1",
+        threaded=True,  # sufficient for the single-user, localhost case
+    )

@@ -1,0 +1,32 @@
+venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Raw OpenAlex responses are re-fetchable; the built index is a derived artifact.
+# The DB is only a few MB at this corpus size, so commit it if you want the
+# corpus to travel with the repo -- just drop the last line.
+data/raw/
+data/lancedb/
+
+# Third-party curriculum PDFs used for evaluation. Copyrighted: fine to hold
+# locally for testing, must not be committed or shipped in the installer.
+curriculum/
+data/curriculum/
+
+# Units extracted from copyrighted PDFs.
+data/units/
+
+# Model weights: fetched by scripts/, not committed.
+models/
+
+# Generated run reports. Regenerate with scripts/run_all.sh and
+# scripts/model_bakeoff.sh; they are output, not source.
+MODEL_BAKEOFF.txt
+RUN_REPORT.txt
+
+# Local-only working material: research scripts hardcoded to the copyrighted
+# source chapters, and working documents that supported them. Not shippable.
+scripts/local/
+docs/local/

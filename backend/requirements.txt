@@ -1,0 +1,13 @@
+Flask
+lancedb
+pyarrow
+httpx
+numpy
+pydantic
+ctranslate2
+sentencepiece
+onnxruntime
+tokenizers
+
+# dev
+pytest

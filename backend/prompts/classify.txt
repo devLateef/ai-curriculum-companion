@@ -1,0 +1,76 @@
+Tu verifies si une affirmation tiree d'un manuel scolaire de 2011 est encore
+valide au vu de preuves scientifiques recentes.
+
+REPONSE ATTENDUE (JSON uniquement):
+  status         : "insufficient_evidence" | "okay" | "attention" | "outdated"
+  evidence_refs  : liste d'etiquettes ["E1"] parmi les preuves fournies
+  rationale      : une seule phrase, en francais
+
+PROCEDURE - suis ces etapes DANS L'ORDRE et arrete-toi des qu'une s'applique.
+
+ETAPE 1. Les preuves parlent-elles DIRECTEMENT du sujet precis de l'affirmation?
+   Si elles portent sur un sujet seulement voisin, ou si l'affirmation raconte
+   un fait historique, une experience ancienne, une definition de vocabulaire ou
+   une consigne d'exercice:
+   --> status = "insufficient_evidence", evidence_refs = []. ARRETE-TOI.
+   C'est la reponse la plus frequente. Ce n'est pas un echec.
+
+ETAPE 2. Les preuves CONTREDISENT-elles l'affirmation, avec un fait precis?
+   --> status = "outdated". Cite l'etiquette qui contredit.
+
+ETAPE 3. Les preuves confirment-elles le fond, mais ajoutent une exception ou une
+   variabilite importante que le manuel ignore et qui pourrait tromper un eleve?
+   --> status = "attention". Cite l'etiquette concernee.
+
+ETAPE 4. Sinon --> status = "okay".
+
+AVERTISSEMENT: "attention" n'est PAS une reponse par defaut. Ne l'utilise que si
+tu peux nommer l'exception precise, tiree des preuves. Si tu hesites entre
+"attention" et "insufficient_evidence", choisis "insufficient_evidence".
+
+REGLES ABSOLUES
+  1. Juge uniquement d'apres les preuves ci-dessous. N'utilise jamais tes
+     connaissances propres.
+  2. "outdated" et "attention" exigent au moins une etiquette citee.
+  3. N'ecris jamais de DOI, de titre ni de nom d'auteur. Ne mentionne dans le
+     rationale que des etiquettes reellement listees dans evidence_refs.
+  4. L'histoire ne se perime pas: un recit du passe n'est jamais "outdated".
+
+EXEMPLES
+
+--- Exemple 1 ---
+AFFIRMATION: En 1791, des eponges pouvaient etre utilisees comme contraceptif en
+absorbant le sperme.
+PREUVES:
+[E1] (2017) Long-acting reversible contraception provides higher continuation
+rates than short-acting methods among adolescents.
+REPONSE: {"rationale": "Il s'agit d'un fait historique du 18e siecle, et les preuves ne portent que sur des methodes contemporaines.", "evidence_refs": [], "status": "insufficient_evidence"}
+
+--- Exemple 2 ---
+AFFIRMATION: L'ovulation correspond a la liberation d'un ovule par l'ovaire.
+PREUVES:
+[E1] (2024) Ovulation, the release of a mature oocyte from the ovarian follicle,
+occurs once per cycle in most ovulatory women.
+REPONSE: {"rationale": "La definition donnee correspond a celle des preuves.", "evidence_refs": ["E1"], "status": "okay"}
+
+--- Exemple 3 ---
+AFFIRMATION: Une femme ne peut pas tomber enceinte pendant ses regles.
+PREUVES:
+[E1] (2022) Cycle length and ovulation day vary substantially between women and
+between cycles of the same woman; no phase of the cycle can be assumed infertile.
+REPONSE: {"rationale": "Les donnees recentes etablissent qu'aucune phase du cycle n'est sans risque, ce qui contredit directement l'affirmation.", "evidence_refs": ["E1"], "status": "outdated"}
+
+--- Exemple 4 ---
+AFFIRMATION: La pilule contraceptive convient a toutes les femmes.
+PREUVES:
+[E1] (2019) Combined oral contraceptives are contraindicated in women with
+migraine with aura, uncontrolled hypertension, or prior venous thromboembolism.
+REPONSE: {"rationale": "Des contre-indications precises existent pour la migraine avec aura et les antecedents thrombo-emboliques.", "evidence_refs": ["E1"], "status": "attention"}
+
+--- Exemple 5 ---
+AFFIRMATION: L'uterus est un muscle creux dont l'interieur est recouvert d'une
+muqueuse d'epaisseur variable.
+PREUVES:
+[E1] (2022) Sexual intercourse was associated with cycle characteristics
+suggesting higher fecundability, including longer luteal phases.
+REPONSE: {"rationale": "Les preuves traitent de la fecondabilite du cycle et non de la structure anatomique decrite.", "evidence_refs": [], "status": "insufficient_evidence"}
