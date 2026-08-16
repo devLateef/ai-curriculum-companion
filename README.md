@@ -18,32 +18,18 @@ AI Curriculum Companion is a Flask-based Python project that serves as a crucial
 ### Setup
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install flask
+cd frontend
+npm install
 ```
 
 ### Run the app
 
-On Windows:
-
 ```bash
-set FLASK_APP=backend.main
-flask run
+cd frontend
+npm run dev
 ```
 
-On macOS/Linux:
-
-```bash
-export FLASK_APP=backend.main
-flask run
-```
-
-Then open:
-
-```text
-http://127.0.0.1:5000/
-```
+Then open the local URL provided by Vite in your browser.
 
 ## Example routes
 
