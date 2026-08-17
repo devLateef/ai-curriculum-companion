@@ -1,5 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Upload, FileText, GraduationCap, Sparkles, BookOpen, Zap } from 'lucide-react';
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface UploadViewProps {
   onFileLoaded: (file: File, url: string) => void;
@@ -18,19 +21,37 @@ export const UploadView: React.FC<UploadViewProps> = ({ onFileLoaded }) => {
     setLoading(true);
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // 1. Create a URL for the file to read it with pdfjs
+      const url = URL.createObjectURL(file);
+      
+      // 2. Extract text using pdfjs (optional now since no backend, but kept as requested before)
+      const doc = await pdfjs.getDocument(url).promise;
+      const numPages = doc.numPages;
+      let extractedText = "";
+      
+      for (let i = 1; i <= numPages; i++) {
+        const page = await doc.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        extractedText += `--- Page ${i} ---\n${pageText}\n\n`;
+      }
 
+      // 3. Send extracted text as JSON
       const response = await fetch('http://127.0.0.1:5000/process', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          text: extractedText,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload file to the backend.');
+        throw new Error('Failed to send text to the backend.');
       }
 
-      const url = URL.createObjectURL(file);
       onFileLoaded(file, url);
     } catch (error) {
       console.error('Error uploading file:', error);
