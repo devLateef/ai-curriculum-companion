@@ -1,0 +1,19 @@
+Flask
+lancedb
+pyarrow
+httpx
+numpy
+pydantic
+ctranslate2
+sentencepiece
+onnxruntime
+tokenizers
+
+# PDF upload route (/process)
+pdfplumber
+spacy
+scikit-learn
+requests
+
+# dev
+pytest

@@ -1,39 +1,25 @@
-from flask import Flask, request
-import logging
-from backend.services.pdf_processor import PdfProcessor
-processor = PdfProcessor()
+"""Entry point for the analysis API.
 
-logging.basicConfig(level=logging.DEBUG, force=True)
+    ./venv/bin/python main.py                 # localhost:5000
+    HOST=0.0.0.0 PORT=8000 python main.py     # bind elsewhere
+    FLASK_DEBUG=1 python main.py              # autoreload while editing
 
-app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
-app.logger.handlers.clear()
-app.logger.addHandler(logging.StreamHandler())
+Debug defaults to OFF. Werkzeug's reloader runs the module in two processes,
+which means two model clients and two database handles on a machine with a tight
+memory budget -- an accidental doubling of the footprint the design is built
+around.
+"""
 
-@app.route('/process', methods = ['POST'])
-def process():
-    # 1. extract PDF text
-    uploaded_pdf = request.files.get("file")
-    pdf_data = processor.pdf_to_text(uploaded_pdf)
-    pdf_text = pdf_data["text"]
+import os
 
-    # 2. extract curriculum info
-    info = processor.extract_information(pdf_text)
+from src.api.app import app
 
-    # 3. search recent sources
-    recent_sources = processor.search_all_sources(info)
+__all__ = ["app"]
 
-    # 4. compare
-    comparison = processor.compare_with_recent_research(info)
-
-    result = {
-        "pdf_summary": pdf_data,
-        "curriculum_info": info,
-        "recent_sources": recent_sources,
-        "comparison": comparison
-    }
-
-    return result
-
-
-
+if __name__ == "__main__":
+    app.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG") == "1",
+        threaded=True,  # sufficient for the single-user, localhost case
+    )
