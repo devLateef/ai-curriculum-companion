@@ -1,0 +1,8 @@
+Flask
+Flask-Cors
+Flask-SocketIO
+requests
+PyMuPDF
+scikit-learn
+python-dotenv
+simple-websocket
