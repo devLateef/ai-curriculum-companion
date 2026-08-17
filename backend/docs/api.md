@@ -8,7 +8,13 @@ Setup and run:
 
 ```bash
 cd backend
-./venv/bin/pip install -r requirements.txt
+ollama serve                                         # in another shell
+ollama pull bge-m3                                   # embeddings
+ollama pull qwen3.5:0.8b                             # verdicts
+export OLLAMA_MAX_LOADED_MODELS=2                    # both stay resident, no reload per unit
+
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt           # not the root requirements.txt
 ./venv/bin/python -m spacy download en_core_web_sm   # pip cannot fetch this
 ./venv/bin/python main.py                            # http://127.0.0.1:5000
 ```
@@ -16,11 +22,44 @@ cd backend
 The server runs with `backend/` as the working directory; that is the import
 root for `src.*`, `services.*`, and the scripts.
 
+There is no `.env` loading. Set these in the shell: `OPENALEX_MAILTO` (required to
+fetch), `OLLAMA_HOST`, `CHAT_MODEL`, `EMBED_MODEL`, `ALLOWED_ORIGINS`,
+`ENABLE_ONLINE_SOURCES`. Defaults are in `src/core/config.py`.
+
 Check it is alive before anything else:
 
 ```bash
 curl localhost:5000/api/health
 ```
+
+---
+
+## Building the corpus
+
+`data/raw/`, `data/lancedb/`, `data/units/`, `models/` and `curriculum/` are
+gitignored, so a fresh clone has no corpus and `/api/analyze` returns 503 until it
+is built. Phase A hits the API and caches raw responses; Phase B cleans, embeds and
+writes the table. Re-tuning the build should not re-fetch.
+
+```bash
+export OPENALEX_MAILTO=you@example.com
+
+./venv/bin/python -m src.core.openalex --subject reproductive_health  # A: fetch
+./venv/bin/python -m src.core.corpus --rebuild                        # B: embed + write
+./venv/bin/python -m src.core.corpus --stats                          # verify
+```
+
+Drop `--subject` for all three; only `reproductive_health` is in evaluated scope.
+Without `--rebuild` the build upserts on `id`, which is correct for a re-embed but
+fails across a schema change.
+
+Two traps:
+
+- Module paths are `src.core.*`. Several docstrings still say `python -m src.corpus`,
+  which no longer resolves.
+- `scripts.measure` / `scripts.calibrate` read `data/units/`, derived from PDFs that
+  are not distributed. Change the seeds or `EMBED_MODEL` and you cannot recalibrate
+  `DEFAULT_FLOOR` — it silently stays at a value tuned for a different corpus.
 
 ---
 
